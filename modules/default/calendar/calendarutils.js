@@ -80,7 +80,18 @@ const CalendarUtils = {
 
 			return (temp + currentLine).trim();
 		} else {
-			if (maxLength && typeof maxLength === "number" && string.length > maxLength) {
+			//This really need to be specific for the Cozi Calendar. Need to pass a flag through.
+			if (string.includes(":")) {
+				parts = string.split(/:(.*)/s);
+				strShorten = parts[1];
+				if (maxLength && typeof maxLength === "number" && strShorten.length > maxLength) {
+					shortened = strShorten.trim().slice(0, maxLength).trim() + "…";
+					return parts[0] + ": " + shortened;
+					//return string.trim().slice(0, maxLength) + "…";
+				} else {
+					return string.trim();
+				}
+			} else if (maxLength && typeof maxLength === "number" && string.length > maxLength) {
 				return `${string.trim().slice(0, maxLength)}…`;
 			} else {
 				return string.trim();
