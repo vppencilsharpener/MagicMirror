@@ -1,0 +1,37 @@
+.calendar .dot {
+  height: 18px;
+  width: 18px;
+/*  border-radius: 50%;*/
+  display: inline-block;
+  height: 0.75em;
+  line-height: 0.75em;
+}
+.cap {
+  background-color: rgb(60, 113, 225);
+}
+.tim {
+  background-color: rgb(51, 134, 2);;
+}
+.gg {
+  background-color: rgb(125, 212, 193);
+}
+.ted {
+  background-color: rgb(193, 7, 53);
+}
+.lulu {
+  background-color: rgb(155, 85, 179);
+}
+
+div.calendar table tr.normal.dateheader td {
+  text-align: center;
+  border-bottom: 1px solid gray;
+}
+div.calendar table tr.normal.event td {
+  text-align: right;
+}
+div.calendar table tr.normal.event td.time {
+  padding-right: 0.5em;
+}
+div.calendar table tr.normal.event td.title {
+  text-align: left;
+}
