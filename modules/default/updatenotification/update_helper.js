@@ -1,9 +1,11 @@
-const Exec = require("child_process").exec;
-const Spawn = require("child_process").spawn;
-const commandExists = require("command-exists");
+const Exec = require("node:child_process").exec;
+const Spawn = require("node:child_process").spawn;
+const fs = require("node:fs");
+
 const Log = require("logger");
 
-/* class Updater
+/*
+ * class Updater
  * Allow to self updating 3rd party modules from command defined in config
  *
  * [constructor] read value in config:
@@ -83,13 +85,15 @@ class Updater {
 		return updater;
 	}
 
-	// module updater with his proper command
-	// return object as result
-	//{
-	//	error: <boolean>, // if error detected
-	//	updated: <boolean>, // if updated successfully
-	//	needRestart: <boolean> // if magicmirror restart required
-	//};
+	/*
+	 *  module updater with his proper command
+	 *  return object as result
+	 * {
+	 * 	error: <boolean>, // if error detected
+	 * 	updated: <boolean>, // if updated successfully
+	 * 	needRestart: <boolean> // if magicmirror restart required
+	 * };
+	 */
 	updateProcess (module) {
 		let Result = {
 			error: false,
@@ -138,7 +142,8 @@ class Updater {
 	// restart MagicMiror with "pm2"
 	pm2Restart () {
 		Log.info("updatenotification: PM2 will restarting MagicMirror...");
-		Exec(`pm2 restart ${this.PM2}`, (err, std, sde) => {
+		const pm2 = require("pm2");
+		pm2.restart(this.PM2, (err, proc) => {
 			if (err) {
 				Log.error("updatenotification:[PM2] restart Error", err);
 			}
@@ -159,53 +164,43 @@ class Updater {
 	check_PM2_Process () {
 		Log.info("updatenotification: Checking PM2 using...");
 		return new Promise((resolve) => {
-			commandExists("pm2")
-				.then(async () => {
-					var PM2_List = await this.PM2_GetList();
-					if (!PM2_List) {
+			if (fs.existsSync("/.dockerenv")) {
+				Log.info("updatenotification: Running in docker container, not using PM2 ...");
+				this.usePM2 = false;
+				resolve(false);
+				return;
+			}
+
+			const pm2 = require("pm2");
+			pm2.connect((err) => {
+				if (err) {
+					Log.error("updatenotification: [PM2]", err);
+					this.usePM2 = false;
+					resolve(false);
+					return;
+				}
+				pm2.list((err, list) => {
+					if (err) {
 						Log.error("updatenotification: [PM2] Can't get process List!");
 						this.usePM2 = false;
 						resolve(false);
 						return;
 					}
-					PM2_List.forEach((pm) => {
-						if (pm.pm2_env.version === this.version && pm.pm2_env.status === "online" && pm.pm2_env.PWD.includes(this.root_path)) {
+					list.forEach((pm) => {
+						if (pm.pm2_env.version === this.version && pm.pm2_env.status === "online" && pm.pm2_env.pm_cwd.includes(`${this.root_path}/`)) {
 							this.PM2 = pm.name;
 							this.usePM2 = true;
-							Log.info("updatenotification: You are using pm2 with", this.PM2);
+							Log.info("updatenotification: [PM2] You are using pm2 with", this.PM2);
 							resolve(true);
 						}
 					});
+					pm2.disconnect();
 					if (!this.PM2) {
-						Log.info("updatenotification: You are not using pm2");
+						Log.info("updatenotification: [PM2] You are not using pm2");
 						this.usePM2 = false;
 						resolve(false);
 					}
-				})
-				.catch(() => {
-					Log.info("updatenotification: You are not using pm2");
-					this.usePM2 = false;
-					resolve(false);
 				});
-		});
-	}
-
-	// Get the list of pm2 process
-	PM2_GetList () {
-		return new Promise((resolve) => {
-			Exec("pm2 jlist", (err, std, sde) => {
-				if (err) {
-					resolve(null);
-					return;
-				}
-				try {
-					let result = JSON.parse(std);
-					resolve(result);
-				} catch (e) {
-					Log.error("updatenotification: [PM2] can't GetList!");
-					Log.debug("updatenotification: [PM2] GetList is not an JSON format", e);
-					resolve(null);
-				}
 			});
 		});
 	}
@@ -218,7 +213,7 @@ class Updater {
 
 	// search update module command
 	applyCommand (module) {
-		if (this.isMagicMirror(module.module)) return null;
+		if (this.isMagicMirror(module.module) || !this.updates.length) return null;
 		let command = null;
 		this.updates.forEach((updater) => {
 			if (updater[module]) command = updater[module];
