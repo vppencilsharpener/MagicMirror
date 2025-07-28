@@ -30,6 +30,8 @@ const MM = (function () {
 				dom.className = `module ${dom.className} ${module.data.classes}`;
 			}
 
+			dom.style.order = (typeof module.data.order === "number" && Number.isInteger(module.data.order)) ? module.data.order : 0;
+
 			dom.opacity = 0;
 			wrapper.appendChild(dom);
 
@@ -463,7 +465,8 @@ const MM = (function () {
 				}
 			});
 
-			wrapper.style.display = showWrapper ? "block" : "none";
+			// move container definitions to main CSS
+			wrapper.className = showWrapper ? "container" : "container hidden";
 		});
 	};
 
@@ -608,13 +611,13 @@ const MM = (function () {
 					// if server startup time has changed (which means server was restarted)
 					// the client reloads the mm page
 					try {
-						const res = await fetch(`${location.protocol}//${location.host}/startup`);
+						const res = await fetch(`${location.protocol}//${location.host}${config.basePath}startup`);
 						const curr = await res.text();
 						if (startUp === "") startUp = curr;
 						if (startUp !== curr) {
 							startUp = "";
 							window.location.reload(true);
-							console.warn("Refreshing Website because server was restarted");
+							Log.warn("Refreshing Website because server was restarted");
 						}
 					} catch (err) {
 						Log.error(`MagicMirror not reachable: ${err}`);

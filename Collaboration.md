@@ -1,3 +1,5 @@
+# Collaboration
+
 This document describes how collaborators of this repository should work together.
 
 ## Pull Requests
@@ -28,12 +30,16 @@ Are done by
 ### Deployment steps
 
 - [ ] pull latest `develop` branch
-- [ ] update `package.json` and `package-lock.json` to reflect correct version number `2.xx.0`
-- [ ] test `develop` branch
-- [ ] update `CHANGELOG.md`
-  - [ ] add all contributor names: `...`
-  - [ ] add min. node version: > ⚠️ This release needs nodejs version `v20` or `v22`, minimum version is `v20.9.0`
-- [ ] commit and push all changes
+- [ ] create `prep-release` branch from `develop`
+  - [ ] update `package.json` and `package-lock.json` to reflect correct version number `2.xx.0`
+  - [ ] test `prep-release` branch
+  - [ ] update `CHANGELOG.md`
+    - [ ] add all contributor names: `...`
+    - [ ] add min. node version: > ⚠️ This release needs nodejs version `v22.14.0` or higher
+    - [ ] check release link at the bottom of the file
+  - [ ] commit and push all changes
+  - [ ] create pull request from `prep-release` to `develop` branch with title `Prepare Release 2.xx.0`
+  - [ ] after successful test run via github actions: merge pull request to `develop`
 - [ ] after successful test run via github actions: create pull request from `develop` to `master` branch
   - [ ] add label `mastermerge`
   - [ ] title of the PR is `Release 2.xx.0`
@@ -42,17 +48,20 @@ Are done by
 - [ ] create new release with
   - [ ] corresponding version tag `v2.xx.0`
   - [ ] a release name: `...`
-  - [ ] description of the PR is the section of the `CHANGELOG.md`
+  - [ ] description of the release is the section of the `CHANGELOG.md`
 
 ### Draft new development release
 
 - [ ] checkout `develop` branch
 - [ ] update `package.json` and `package-lock.json` to reflect correct version number `2.xx.0-develop`
 - [ ] draft new section in `CHANGELOG.md`
-- [ ] commit and publish `develop` branch
+  - [ ] create new release link at the bottom of the file
+- [ ] commit and push `develop` branch
+- [ ] if new release will be in January, update the year in LICENSE.md
 
 ### After release
 
 - [ ] publish release notes with link to github release on forum in new locked topic
 - [ ] close all issues with label `ready (coming with next release)`
 - [ ] release new documentation by merging `develop` on `master` in documentation repository
+- [ ] publish new version on [npm](https://www.npmjs.com/package/magicmirror)
